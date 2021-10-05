@@ -84,8 +84,10 @@ subroutine spline_cubic_initialize_natural()!自由边界的三次样条插值�
         end if
                 
         !构建系数矩阵
-        A(:,:limit+1)=transpose(reshape((/one,(zero,counter=1,limit,1),((h(counter1),&
-        2*(h(counter1)+h(counter1+1)),h(counter1+1),(zero,counter=1,limit-1,1)),counter1=1,limit-1,1),zero,one/),(/limit+1,limit+1/)))
+        A(:,:limit+1)=reshape((/one,(zero,counter=1,limit,1),((h(counter1),&
+        2*(h(counter1)+h(counter1+1)),h(counter1+1),(zero,counter=1,limit-1,1)),counter1=1,limit-1,1),zero,one/),(/limit+1,limit+1/))
+        call swap(A(1,2),A(2,1))
+        call swap(A(limit+1,limit),A(limit,limit+1))
         !等号右侧
         m=6*(/zero,((y(counter+2)-y(counter+1))/h(counter+2)-(y(counter+1)-y(counter+0))/h(counter+1),counter=0,limit-2,1),zero/)
         !调用欧拉哥给的函数，那个速度比较快
@@ -114,8 +116,8 @@ subroutine spline_cubic_initialize_clamped(bound_A,bound_B)!夹持边界的三�
         end if
                 
         !构建系数矩阵
-        A(:,:limit+1)=transpose(reshape((/2*h(1),h(1),(zero,counter=2,limit,1),((h(counter1),&
-        2*(h(counter1)+h(counter1+1)),h(counter1+1),(zero,counter=1,limit-1,1)),counter1=1,limit-1,1),h(limit),2*h(limit)/),(/limit+1,limit+1/)))
+        A(:,:limit+1)=reshape((/2*h(1),h(1),(zero,counter=2,limit,1),((h(counter1),&
+        2*(h(counter1)+h(counter1+1)),h(counter1+1),(zero,counter=1,limit-1,1)),counter1=1,limit-1,1),h(limit),2*h(limit)/),(/limit+1,limit+1/))
         !等号右侧
         m=6*(/(y(1)-y(0))/h(1)-bound_A,((y(counter+2)-y(counter+1))/h(counter+2)-(y(counter+1)-y(counter+0))/&
         h(counter+1),counter=0,limit-2,1),bound_B-(y(limit)-y(limit-1))/h(limit)/)
@@ -147,12 +149,11 @@ subroutine spline_cubic_initialize_cycle(T)!周期边界的三次样条插值
         end if
                 
         !构建系数矩阵
-        A=transpose(reshape((/2*(h(1)+h(limit+1)),h(1),(zero,counter=2,limit+1,1),((h(counter1),&
-        2*(h(counter1)+h(counter1+1)),h(counter1+1),(zero,counter=1,limit,1)),counter1=1,limit,1),h(limit+1),2*(h(limit+1)+h(1))/),(/limit+2,limit+2/)))
+        A=reshape((/2*(h(1)+h(limit+1)),h(1),(zero,counter=2,limit+1,1),((h(counter1),&
+        2*(h(counter1)+h(counter1+1)),h(counter1+1),(zero,counter=1,limit,1)),counter1=1,limit,1),h(limit+1),2*(h(limit+1)+h(1))/),(/limit+2,limit+2/))
         !等号右侧
-        m=6*(/(y(0)-y(limit))/h(limit+1)-(y(limit)-y(limit-1))/h(limit),(y(1)-y(0))/h(1)-(y(0)-y(limit))/h(limit+1),&
-        ((y(counter+2)-y(counter+1))/h(counter+2)-(y(counter+1)-y(counter+0))/&
-        h(counter+1),counter=0,limit-2,1),(y(0)-y(limit))/h(limit+1)-(y(limit)-y(limit-1))/h(limit)/)
+        m=6*(/(y(1)-y(0))/h(1)-(y(0)-y(limit))/h(limit+1),((y(counter+2)-y(counter+1))/h(counter+2)-(y(counter+1)-y(counter+0))/&
+        h(counter+1),counter=0,limit-2,1),(y(0)-y(limit))/h(limit+1)-(y(limit)-y(limit-1))/h(limit),(y(1)-y(0))/h(1)-(y(0)-y(limit))/h(limit+1)/)
         !调用欧拉哥给的函数，那个速度比较快
         call solve(A,m,limit+2,1)
         return
